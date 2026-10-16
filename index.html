@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
     <title>Turo Case Study — Interactive Prototype</title>
@@ -134,13 +138,10 @@
         position:absolute; top:12px; left:50%; transform:translateX(-50%);
         width:126px; height:36px; background:#101014; border-radius:999px; z-index:40;
       }
-      .statusbar{
-        flex:none; height:54px; padding:16px 28px 0;
-        display:flex; justify-content:space-between; align-items:center;
-        font-size:13.5px; font-weight:600; background:#fff; position:relative; z-index:5;
-      }
-      .statusbar .sicons{ display:flex; gap:6px; align-items:center; }
-      .screen{ flex:1; overflow-y:auto; overflow-x:hidden; position:relative; background:#fff; scrollbar-width:none; }
+      /* No fake status bar — the device shows its own. The screen
+         starts below a clear inset: 54px on the desktop frame (room
+         for the Dynamic Island), the system safe area on a phone. */
+      .screen{ flex:1; margin-top:54px; overflow-y:auto; overflow-x:hidden; position:relative; background:#fff; scrollbar-width:none; }
       .screen::-webkit-scrollbar{ display:none; }
       .stage-note{ font-size:12.5px; color:var(--ink-3); text-align:center; margin:0; max-width:420px; line-height:1.5; }
 
@@ -200,6 +201,12 @@
       .t-searchbtn{
         flex:none; width:42px; height:42px; border-radius:10px; background:#593cfb;
         display:flex; align-items:center; justify-content:center;
+      }
+      /* Home: search bar + quick filters pin to the top on scroll */
+      .home-top{
+        position:sticky; top:0; z-index:6; background:#fff;
+        padding-bottom:8px;
+        box-shadow:0 10px 24px rgba(20,20,40,.10), 0 1px 0 rgba(20,20,40,.05);
       }
       .pillrow{
         display:flex; gap:8px; overflow-x:auto; padding:14px 20px 2px; scrollbar-width:none;
@@ -703,10 +710,7 @@
         }
         .stage-note{ display:none; }
         .notch{ display:none; }
-        .statusbar{
-          height:auto; min-height:54px;
-          padding-top:max(16px, env(safe-area-inset-top)); padding-bottom:4px;
-        }
+        .screen{ margin-top:env(safe-area-inset-top); }
         .tabbar{ left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); }
 
         .mobile-dock{
@@ -805,13 +809,6 @@
       <div class="stage">
         <div class="phone" id="phone">
           <div class="notch" aria-hidden="true"></div>
-          <div class="statusbar" aria-hidden="true">
-            <span>2:08</span>
-            <span class="sicons">
-              <svg width="17" height="11" viewBox="0 0 17 11" fill="#191922"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#191922" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="#191922"/><path d="M23.5 4v4a2.2 2.2 0 0 0 0-4Z" fill="#191922" opacity=".5"/></svg>
-            </span>
-          </div>
           <div class="screen" id="screen"></div>
           <nav class="tabbar" id="tabbar" aria-label="App tabs"></nav>
           <div id="sheetRoot"></div>
@@ -1293,8 +1290,9 @@
     function renderHome(){
       var x = ctx();
       var html = '<div style="padding-bottom:104px">';
-      /* Search bar (screenshot 1) */
-      html += '<button type="button" class="t-searchbar" onclick="openSearch()" aria-label="Open search">' +
+      /* Search bar + quick filters: sticky header on home */
+      html += '<div class="home-top">' +
+      '<button type="button" class="t-searchbar" onclick="openSearch()" aria-label="Open search">' +
         '<span class="ph-txt">Search anywhere</span>' +
         '<span class="t-searchbtn">' + ICONS.searchW + '</span></button>';
       /* Filter pills */
@@ -1303,7 +1301,7 @@
         '<button type="button" class="fpill" onclick="openSearch()">' + ICONS.planeSm.replace('fill="#191922"', 'fill="#191922"') + ' Airports</button>' +
         '<button type="button" class="fpill" onclick="openSearch()">' + ICONS.calD.replace('width="21" height="21"', 'width="16" height="16"') + ' Monthly</button>' +
         '<button type="button" class="fpill" onclick="openSearch()">' + ICONS.pin + ' Nearby</button>' +
-      '</div>';
+      '</div></div>';
 
       if (state.mode === "new") {
         html += '<h2 class="intent-head">How are you traveling?</h2>' +
